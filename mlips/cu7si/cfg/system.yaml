@@ -1,0 +1,113 @@
+title: 'CoZn Alloy Database'
+# Ordered list of species; this is the same order as should be in the
+
+# Give the species present, and provide the mapping of your choosing.
+# I like to set the mapping to the atomic number of that species.
+species: &species
+  0 : Cu
+  1 : Si
+  #2 : Zn
+
+
+# Magnetic moments for each species
+magmom:
+  0: 0.0
+  1: 0.0
+    
+
+
+# Absolute path where the database folder system will be created.
+ROOT: &ROOT /work/angel/WP1/automtp-master/
+
+path:
+   ROOT: *ROOT 
+   struct_path: &struct_path mtp/CuSi
+   setup: 'setup'   
+
+# Choose slurm or local
+# slurm launches the batch scripts using the slurm workflow manager
+# local runs on the local machine
+execute: slurm 
+
+# output filenames for mlip routines
+output:
+ setup: 'setup'
+ 
+ relax: 'relaxed.cfg'
+ select: 'selected.cfg'
+ vasp: 'vasp.out'
+ train: 
+   training: 'curr.mtp'
+   mvsgrade: 'state.mvs'
+ analysis:
+   getdata: 'plots'
+
+# These are global settings for INCAR, POTCAR, and KPOINTS that will
+# be applied to *all* the VASP calculations in all databases. They can
+# be overridden in each database.
+calculator:
+  name: 'Vasp'
+  prec: 'a'
+  encut: 400
+  isym: 0
+  lwave: False
+  lreal: 'auto'
+  ediff: '1e-5'
+  ismear: 1
+  sigma: 0.1
+  pp: 'pbe'
+  ialgo: 38
+  nelm: 40
+  
+  # If the POTCAR names are non-standard, include the them in the
+  # setups dict with the correct suffix after the element name
+  # here. You must supply the versions for the potentials.
+  potcars:
+    directory: '/'
+    xc: 'PBE'
+    versions:
+      Pd: '28Jan2005'
+    setups:
+      Pd: '_pv'
+  kpoints:
+    method: 'mueller'
+    mindistance: 50
+
+
+# Parameters for the job arrays that will be submitted for each
+# database. These can be overridden in each database below as well.
+execution:
+  template: 'run_array_ml.sh'
+  time: 48
+  ntasks: 1
+  nodes: 1
+  mem_per_cpu: 8
+  job_name: 'CoMnZn'
+  partition: 'physics'
+  array_limit: 150
+  exec_path: 'vasp_ncl'
+
+for_makeStr:
+  # for more information on these parameters, see the -help option in makeStr.py
+  examples: False
+  verbose: False
+  action: 'print'
+  debug: False
+  structures: ['all']
+  displace: 0.0  
+  # input: 'struct_enum.out'
+  mink: f  # Minkowski folding
+  # species: *species # SET AT TOP OF FILE
+  # species_mapping': *species # SET AT TOP OF FILE
+  # outfile: 'vasp.{}'
+  rattle: 0.0   # randomized rattle
+  config: t  # export structures in the mlip format
+  remove_zeros: f   # remove the zeros from the vasp POSCARS
+
+
+# Configurations to setup the struct_enum.in files for Enumlib
+# There is no need to edit these parameters until you change the location of the enumerating yaml file
+_enumeration_yaml_path:
+    struct_path: *struct_path
+    filename: enum_3.yaml
+
